@@ -70,6 +70,8 @@ docker run --network opengaussnetwork --ip $MASTER_IP --privileged=true \
 -v /mnt/cephfs/lcy/og1/postgresql.conf:/etc/opengauss/postgresql.conf \
 -v /mnt/cephfs/lcy/og1/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M primary \
+ -c 'config_file=/etc/opengauss/postgresql.conf' \
+ -c 'hba_file=/etc/opengauss/pg_hba.conf' \
 || {
   echo ""
   echo "ERROR: OpenGauss Database Master Docker Container was NOT successfully created."
@@ -90,6 +92,8 @@ docker run --network opengaussnetwork --ip $SLAVE_1_IP --privileged=true \
 -v /mnt/cephfs/lcy/og2/postgresql.conf:/etc/opengauss/postgresql.conf \
 -v /mnt/cephfs/lcy/og2/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M standby \
+ -c 'config_file=/etc/opengauss/postgresql.conf' \
+ -c 'hba_file=/etc/opengauss/pg_hba.conf' \
 || {
   echo ""
   echo "ERROR: OpenGauss Database Slave1 Docker Container was NOT successfully created."

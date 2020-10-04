@@ -66,6 +66,9 @@ docker run --network opengaussnetwork --ip $MASTER_IP --privileged=true \
 -e GS_PASSWORD=$GS_PASSWORD \
 -e NODE_NAME=$MASTER_NODENAME \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$MASTER_IP localport=$MASTER_LOCAL_PORT localservice=$MASTER_HOST_PORT remotehost=$SLAVE_1_IP remoteport=$SLAVE_1_LOCAL_PORT remoteservice=$SLAVE_1_HOST_PORT'\n" \
+-v /mnt/cephfs/lcy/:/var/lib/opengauss \
+-v /mnt/cephfs/lcy/og1/postgresql.conf:/etc/opengauss/postgresql.conf \
+-v /mnt/cephfs/lcy/og1/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M primary \
 || {
   echo ""
@@ -83,6 +86,9 @@ docker run --network opengaussnetwork --ip $SLAVE_1_IP --privileged=true \
 -e GS_PASSWORD=$GS_PASSWORD \
 -e NODE_NAME=$SLAVE_NODENAME \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$SLAVE_1_IP localport=$SLAVE_1_LOCAL_PORT localservice=$SLAVE_1_HOST_PORT remotehost=$MASTER_IP remoteport=$MASTER_LOCAL_PORT remoteservice=$MASTER_HOST_PORT'\n" \
+-v /mnt/cephfs/lcy/:/var/lib/opengauss \
+-v /mnt/cephfs/lcy/og2/postgresql.conf:/etc/opengauss/postgresql.conf \
+-v /mnt/cephfs/lcy/og2/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M standby \
 || {
   echo ""

@@ -138,10 +138,8 @@ docker run --network opengaussnetwork --ip $MASTER_IP --privileged=true \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$MASTER_IP localport=$MASTER_LOCAL_PORT localservice=$MASTER_HOST_PORT remotehost=$SLAVE_1_IP remoteport=$SLAVE_1_LOCAL_PORT remoteservice=$SLAVE_1_HOST_PORT'\n" \
 -v $SHARED_DATA_DIR:/var/lib/opengauss \
 -v $MASTER_CONFIG_PATH/postgresql.conf:/etc/opengauss/postgresql.conf \
-#-v $MASTER_CONFIG_PATH/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M primary \
- -c 'config_file=/etc/opengauss/postgresql.conf' \
-# -c 'hba_file=/etc/opengauss/pg_hba.conf' \
+-c 'config_file=/etc/opengauss/postgresql.conf' \
 || {
   echo ""
   echo "ERROR: OpenGauss Database Master Docker Container was NOT successfully created."
@@ -154,7 +152,7 @@ sleep 30s
 GS_PORT=$SLAVE_1_HOST_PORT
 SERVER_MODE=standby
 REPL_CONN_INFO="replconninfo1 = 'localhost=$SLAVE_1_IP localport=$SLAVE_1_LOCAL_PORT localservice=$SLAVE_1_HOST_PORT remotehost=$MASTER_IP remoteport=$MASTER_LOCAL_PORT remoteservice=$MASTER_HOST_PORT'\n" \
-NODE_NAME=$SLAVE_1_NODENAME
+NODE_NAME=$SLAVE_NODENAME
 CONFIG_PATH=$SLAVE_1_CONFIG_PATH
 opengauss_setup_postgresql_conf
 
@@ -167,10 +165,8 @@ docker run --network opengaussnetwork --ip $SLAVE_1_IP --privileged=true \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$SLAVE_1_IP localport=$SLAVE_1_LOCAL_PORT localservice=$SLAVE_1_HOST_PORT remotehost=$MASTER_IP remoteport=$MASTER_LOCAL_PORT remoteservice=$MASTER_HOST_PORT'\n" \
 -v $SHARED_DATA_DIR:/var/lib/opengauss \
 -v $SLAVE_1_CONFIG_PATH/postgresql.conf:/etc/opengauss/postgresql.conf \
-#-v $SLAVE_1_CONFIG_PATH/pg_hba.conf:/etc/opengauss/pg_hba.conf \
 enmotech/opengauss:$VERSION -M standby \
- -c 'config_file=/etc/opengauss/postgresql.conf' \
-# -c 'hba_file=/etc/opengauss/pg_hba.conf' \
+-c 'config_file=/etc/opengauss/postgresql.conf' \
 || {
   echo ""
   echo "ERROR: OpenGauss Database Slave1 Docker Container was NOT successfully created."

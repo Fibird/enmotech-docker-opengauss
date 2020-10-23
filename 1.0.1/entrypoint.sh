@@ -83,6 +83,7 @@ docker_init_database_dir() {
         if [ -n "$GS_NODENAME" ]; then
                 eval 'gs_initdb --pwfile=<(echo "$GS_PASSWORD") --nodename=$GS_NODENAME '"$POSTGRES_INITDB_ARGS"' "$@"'
         else
+		echo $GAUSSHOME
                 eval 'gs_initdb --pwfile=<(echo "$GS_PASSWORD") --nodename=gaussdb '"$POSTGRES_INITDB_ARGS"' "$@"'
         fi        
         # unset/cleanup "nss_wrapper" bits

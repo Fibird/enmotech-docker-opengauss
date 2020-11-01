@@ -107,6 +107,26 @@ docker tag opengauss:1.0.1 fibird/opengauss:<镜像版本号>
 docker push fibird/opengauss:<镜像版本号>
 ```
 
+## 如何调试镜像
+
+首先你需要部署debug版本的镜像，然后通过docker命令进入相应的docker容器，例如exec命令：
+
+```
+docker exec -it opengauss_master-debug bash
+```
+
+通过top命令打印出opengauss进程中的线程，这里在docker中主进程的进程号都是1：
+
+```
+top -H -p 1
+```
+
+然后通过线程相应的进程号(也就是线程id)，你就可以通过gdb attach到相应的线程进行调试：
+
+```
+gdb attach <线程id>
+```
+
 # License
 
 Copyright (c) 2011-2020 Fibird

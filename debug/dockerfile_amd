@@ -5,8 +5,7 @@ COPY gosu-amd64 /usr/local/bin/gosu
 
 ENV LANG en_US.utf8
 
-RUN echo "nameserver 8.8.8.8" >> /etc/resolv.conf && \
-    yum install -y epel-release
+RUN yum install -y epel-release
 
 RUN set -eux; \
     yum install -y bzip2 bzip2-devel curl libaio gdb && \

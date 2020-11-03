@@ -54,6 +54,10 @@ read -p "Please input SHARED_DATA_DIR（共享数据目录）[/mnt/cephfs/]" SHA
 SHARED_DATA_DIR=${SHARED_DATA_DIR:-/mnt/cephfs/}
 echo "SHARED_DATA_DIR set $SHARED_DATA_DIR"
 
+read -p "Please input network name (容器网络名字)[opengaussnetwork]: " NETWORK_NAME
+NETWORK_NAME=${NETWORK_NAME:-opengaussnetwork}
+echo "NETWORK_NAME set $NETWORK_NAME"
+
 read -p "Please input MASTER_IP (主库IP)[172.11.0.101]: " MASTER_IP
 MASTER_IP=${MASTER_IP:-172.11.0.101}
 echo "MASTER_IP set $MASTER_IP"
@@ -100,7 +104,7 @@ echo "openGauss VERSION set $VERSION"
 
 echo "starting  "
 
-docker network create --subnet=$OG_SUBNET opengaussnetwork \
+docker network create --subnet=$OG_SUBNET $NETWORK_NAME \
 || {
   echo ""
   echo "ERROR: OpenGauss Database Network was NOT successfully created."
@@ -129,7 +133,7 @@ NODE_NAME=$MASTER_NODENAME
 CONFIG_PATH=$MASTER_CONFIG_PATH
 opengauss_setup_postgresql_conf
 
-docker run --network opengaussnetwork --ip $MASTER_IP --privileged=true \
+docker run --network $NETWORK_NAME --ip $MASTER_IP --privileged=true \
 --name $MASTER_NODENAME -h $MASTER_NODENAME -p $MASTER_HOST_PORT:$MASTER_HOST_PORT -d \
 -e GS_PORT=$MASTER_HOST_PORT \
 -e OG_SUBNET=$OG_SUBNET \
@@ -156,7 +160,7 @@ NODE_NAME=$SLAVE_NODENAME
 CONFIG_PATH=$SLAVE_1_CONFIG_PATH
 opengauss_setup_postgresql_conf
 
-docker run --network opengaussnetwork --ip $SLAVE_1_IP --privileged=true \
+docker run --network $NETWORK_NAME --ip $SLAVE_1_IP --privileged=true \
 --name $SLAVE_NODENAME -h $SLAVE_NODENAME -p $SLAVE_1_HOST_PORT:$SLAVE_1_HOST_PORT -d \
 -e GS_PORT=$SLAVE_1_HOST_PORT \
 -e OG_SUBNET=$OG_SUBNET \

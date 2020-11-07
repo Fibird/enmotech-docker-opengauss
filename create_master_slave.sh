@@ -22,6 +22,7 @@ opengauss_setup_postgresql_conf() {
                     echo "most_available_sync = on"
                     echo "remote_read_mode = non_authentication"
                     echo "pgxc_node_name = '$NODE_NAME'"
+                    echo "synchronous_commit = off"
                     # echo "application_name = '$NODE_NAME'"
                     if [ "$SERVER_MODE" = "primary" ]; then
                         echo "max_connections = 100"

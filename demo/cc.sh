@@ -1,15 +1,15 @@
 #!/bin/bash
 
-BASEDIR=$(dirname $0)
-. ${BASEDIR}/config
-
 # Usage info
 show_help() {
 cat << EOF
-Usage: ${0##*/} -n cluster-name 
+Usage: ${0##*/} -n cluster-name -N network -c slave-count...
 Create a serverless opengauss cluster.
       -h, --help		display help and exit
       -n, --name		set name of opengauss cluster
+      -N, --network		set the network of opengauss cluster
+      -c, --count		set count of slave database 
+      -d, --directory		set the shared data directory of opengauss cluster
 EOF
 }
 
@@ -60,8 +60,8 @@ then
 fi
 
 # Options of this tool
-SHORT=n:h
-LONG=name:,help
+SHORT=n:c:d:h
+LONG=name:,count:,directory:,help
 
 # Use getopt tool to parse options from users
 PARSED=$(getopt --options $SHORT --longoptions $LONG --name "$0" -- "$@")
@@ -77,6 +77,14 @@ while true; do
   case "$1" in
     -h|--help)
       shift
+      ;;
+    -c|--count)
+      slave_count="$2"
+      shift 2
+      ;;
+    -d|--directory)
+      shared_data_dir=$2
+      shift 2
       ;;
     -n|--name)
       name="$2"
@@ -98,56 +106,24 @@ if [[ -z "$name" ]]; then
     exit -1
 fi
 
-result_pair=$(docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "select * from metadata where cluster_name = '$name';" | grep -E "[0-9]+")
-
-master_ip=$(echo $result_pair | awk '{print $6}')
-slave_count=$(echo $result_pair | awk '{print $8}')
-echo slave_count:$slave_count
-shared_data_dir=$(echo $result_pair | awk '{print $10}')
-master_host_port=$(echo $result_pair | awk '{print $12}')
-master_local_port=$((master_host_port+2))
-
-slave_num=$((slave_count+1))
-echo slave_num:$slave_num
-slave_node_name="$name"_slave"$slave_num"
-slave_host_port=$((master_host_port+slave_num*100))
-slave_local_port=$((slave_host_port+2))
-
-array=(${master_ip//./ })  
-network_prefix=${array[0]}.${array[1]}.${array[2]}
-host_num=${array[3]}
-
-slave_ip=$network_prefix.$((host_num+slave_num))
-echo $slave_ip
-
-GS_PORT=$slave_host_port
-SERVER_MODE=standby
-REPL_CONN_INFO="replconninfo1 = 'localhost=$slave_ip localport=$slave_local_port localservice=$slave_host_port remotehost=$master_ip remoteport=$master_local_port remoteservice=$master_host_port'\n" \
-NODE_NAME=$slave_node_name
-CONFIG_PATH=$shared_data_dir/slave"$slave_num"_config
-if [[ ! -d $CONFIG_PATH ]]; then
-    mkdir -p $CONFIG_PATH
+if [[ -z "$shared_data_dir" ]]; then
+    echo "shared data directory cannot be null!"
+    show_help
+    exit -1
 fi
-opengauss_setup_postgresql_conf
 
-docker run --network $NETWORK_NAME --ip $slave_ip --privileged=true \
---name $slave_node_name -h $slave_node_name -p $slave_host_port:$slave_host_port -d \
--e GS_PORT=$slave_host_port \
--e OG_SUBNET=$SLS_SUBNET \
--e GS_PASSWORD=$GS_PASSWORD \
--e NODE_NAME=$slave_node_name \
--e REPL_CONN_INFO="replconninfo1 = 'localhost=$slave_ip localport=$slave_local_port localservice=$slave_host_port remotehost=$master_ip remoteport=$master_local_port remoteservice=$master_host_port'\n" \
--v $shared_data_dir:/var/lib/opengauss \
--v $CONFIG_PATH/postgresql.conf:/etc/opengauss/postgresql.conf \
-$og_repo/opengauss:$VERSION -M standby \
--c 'config_file=/etc/opengauss/postgresql.conf' \
-|| {
-  echo ""
-  echo "ERROR: OpenGauss Database Slave1 Docker Container was NOT successfully created."
-  exit 1
-}
-echo "OpenGauss Database Slave$slave_num Docker Container created."
+if [[ -z "$slave_count" ]]; then
+    echo "slave count cannot be null!"
+    show_help
+    exit -1
+fi
 
-docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "update metadata set slave_count = $slave_num where cluster_name = '$name';"
+if [[ ! -d $shared_data_dir ]]; then
+    echo "directory $shared_data_dir is not exist!"
+    exit -1
+fi
 
+echo name:$name
+echo shared_data_dir:$shared_data_dir
+echo slave_count:$slave_count
 

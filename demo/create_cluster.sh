@@ -237,6 +237,6 @@ done
 
 create_time=$(date +%Y%m%d%H%M%S)
 
-docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "insert into metadata(cluster_name, master_ip, slave_count, shared_data_dir, master_port, create_time) values('$name', '$master_ip', $slave_count, '$shared_data_dir', $master_host_port, '$password', '$create_time');"
+docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "insert into metadata(cluster_name, master_ip, slave_count, shared_data_dir, master_port, password, create_time) values('$name', '$master_ip', $slave_count, '$shared_data_dir', $master_host_port, '$password', '$create_time');"
 
 

@@ -61,13 +61,16 @@ fi
 
 slave_count=$(docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "select slave_count from metadata where cluster_name = '$name';" | grep -E "[0-9]+" | awk '{print $2}')
 
-#echo slave num:$slave_count
-docker rm -f "$name"_master
 
+echo -e "NAMES\t\tNETWORK\t\tPORT"
+host_name="$name"_master
+port=$(docker port $host_name)
+ip_addr=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $host_name)
+echo -e "$host_name\t$ip_addr\t$port"
 for ((i=1;i<=$slave_count;i++)); do
-    server_name="$name"_slave"$i"
-    docker rm -f "$server_name"
+    host_name="$name"_slave$i
+    ip_addr=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $host_name)
+    port=$(docker port $host_name)
+    echo -e "$host_name\t$ip_addr\t$port"
 done
-
-docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "delete from metadata where cluster_name = '$name';"
 

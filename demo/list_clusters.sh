@@ -57,11 +57,11 @@ if [[ -z "$name" ]]; then
     names=($(docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "select cluster_id,cluster_name from metadata;" | grep -E "[0-9]+" | awk '{print $4}'))
     for n in ${names[@]}; do
         echo ====opengauss cluster "$n":
-        docker ps | grep "$n"_
+        docker ps --filter name=$n -a --format "table {{.Names}}\t{{.ID}}\t{{.Ports}}\t{{.Status}}"
     done
 else
     echo ====opengauss cluster "$name":
-    docker ps | grep "$name"_
+    docker ps --filter name=$name -a --format "table {{.Names}}\t{{.ID}}\t{{.Ports}}\t{{.Status}}"
 fi
 
 

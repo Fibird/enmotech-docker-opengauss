@@ -140,16 +140,17 @@ echo "query database..."
 server_num=$(docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "select count(*) from metadata;" | grep -E "[0-9]+" | awk '{print $2}')
 if [[ "$server_num" -eq 0 ]]; then
     cluster_id=0
+    docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "truncate table metadata;"
 else
     cluster_id=$(docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "select cluster_id from metadata order by cluster_id desc LIMIT 1;" | grep -E "[0-9]+" | awk '{print $2}')
-    ((cluster_id++))
+#    ((cluster_id++))
 fi
 
 echo cluster_id:$cluster_id
 
 master_host_num=$((host_num+MAX_SLAVE_COUNT+MAX_SLAVE_COUNT*cluster_id))
 master_ip="$network_prefix.$master_host_num"
-master_host_port=$((PORT_START+cluster_id*100))
+master_host_port=$((PORT_START+cluster_id*MAX_SLAVE_COUNT*100))
 master_local_port=$((master_host_port+2))
 master_node_name="$name"_master
 

@@ -60,6 +60,7 @@ if [[ -z "$name" ]]; then
         docker ps | grep "$n"_
     done
 else
+    echo ====opengauss cluster "$name":
     docker ps | grep "$name"_
 fi
 

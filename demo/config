@@ -9,12 +9,11 @@ NETWORK_NAME=serverless_network
 SLS_SUBNET=175.11.0.0/24
 DB_IP=175.11.0.220
 DB_PORT=3307
-
+# metadata db password
 DB_PWD=my-secret-pw
 
 MAX_SLAVE_COUNT=10
 PORT_START=5432
-
-GS_PASSWORD=Enmo@123
-
+# opengauss default password
+DEFAULT_PASSWORD=Enmo@123
 

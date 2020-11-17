@@ -13,6 +13,7 @@ Create a serverless opengauss cluster.
       -n, --name		set name of opengauss cluster
       -c, --count		set count of slave database 
       -d, --directory		set the shared data directory of opengauss cluster
+      -p, --password            set password of database cluster
 EOF
 }
 
@@ -63,8 +64,8 @@ then
 fi
 
 # Options of this tool
-SHORT=n:c:d:h
-LONG=name:,count:,directory:,help
+SHORT=n:c:d:p:h
+LONG=name:,count:,directory:,password:,help
 
 # Use getopt tool to parse options from users
 PARSED=$(getopt --options $SHORT --longoptions $LONG --name "$0" -- "$@")
@@ -93,6 +94,10 @@ while true; do
       name="$2"
       shift 2
       ;;
+    -p|--password)
+      password="$2"
+      shift 2
+      ;;
     --)       # End of all options
       shift
       break
@@ -107,6 +112,10 @@ if [[ -z "$name" ]]; then
     echo "name of cluster cannot be null!"
     show_help
     exit -1
+fi
+
+if [[ -z "$password" ]]; then
+    password=$DEFAULT_PASSWORD
 fi
 
 if [[ -z "$shared_data_dir" ]]; then
@@ -146,7 +155,7 @@ else
 #    ((cluster_id++))
 fi
 
-echo cluster_id:$cluster_id
+#echo cluster_id:$cluster_id
 
 master_host_num=$((host_num+MAX_SLAVE_COUNT+MAX_SLAVE_COUNT*cluster_id))
 master_ip="$network_prefix.$master_host_num"
@@ -169,12 +178,12 @@ if [[ ! -d $CONFIG_PATH ]]; then
 fi
 opengauss_setup_postgresql_conf
 
-echo $NETWORK_NAME,$master_ip,$NODE_NAME,$master_host_port,$master_local_port,$SLS_SUBNET,$GS_PASSWORD
+#echo $NETWORK_NAME,$master_ip,$NODE_NAME,$master_host_port,$master_local_port,$SLS_SUBNET,$password
 docker run --network $NETWORK_NAME --ip $master_ip --privileged=true \
 --name $NODE_NAME -h $NODE_NAME -p $master_host_port:$master_host_port -d \
 -e GS_PORT=$master_host_port \
 -e OG_SUBNET=$SLS_SUBNET \
--e GS_PASSWORD=$GS_PASSWORD \
+-e GS_PASSWORD=$password \
 -e NODE_NAME=$NODE_NAME \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$master_ip localport=$master_local_port localservice=$master_host_port remotehost=$slave_1_ip remoteport=$slave_1_local_port remoteservice=$slave_1_host_port'\n" \
 -v $shared_data_dir:/var/lib/opengauss \
@@ -211,7 +220,7 @@ for ((i=1;i<=$slave_count;i++)); do
 	--name $NODE_NAME -h $NODE_NAME -p $slave_host_port:$slave_host_port -d \
 	-e GS_PORT=$slave_host_port \
 	-e OG_SUBNET=$SLS_SUBNET \
-	-e GS_PASSWORD=$GS_PASSWORD \
+	-e GS_PASSWORD=$password \
 	-e NODE_NAME=$NODE_NAME \
 	-e REPL_CONN_INFO="replconninfo1 = 'localhost=$slave_ip localport=$slave_local_port localservice=$slave_host_port remotehost=$master_ip remoteport=$master_local_port remoteservice=$master_host_port'\n" \
 	-v $shared_data_dir:/var/lib/opengauss \
@@ -228,6 +237,6 @@ done
 
 create_time=$(date +%Y%m%d%H%M%S)
 
-docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "insert into metadata(cluster_name, master_ip, slave_count, shared_data_dir, master_port, create_time) values('$name', '$master_ip', $slave_count, '$shared_data_dir', $master_host_port, '$create_time');"
+docker run -it --network serverless_network --rm mysql mysql -h $DB_SERVER_NAME -uroot -p$DB_PWD -D serverless_db -e "insert into metadata(cluster_name, master_ip, slave_count, shared_data_dir, master_port, create_time) values('$name', '$master_ip', $slave_count, '$shared_data_dir', $master_host_port, '$password', '$create_time');"
 
 

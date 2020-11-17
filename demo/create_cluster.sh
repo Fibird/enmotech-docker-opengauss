@@ -188,7 +188,7 @@ docker run --network $NETWORK_NAME --ip $master_ip --privileged=true \
 -e REPL_CONN_INFO="replconninfo1 = 'localhost=$master_ip localport=$master_local_port localservice=$master_host_port remotehost=$slave_1_ip remoteport=$slave_1_local_port remoteservice=$slave_1_host_port'\n" \
 -v $shared_data_dir:/var/lib/opengauss \
 -v $CONFIG_PATH/postgresql.conf:/etc/opengauss/postgresql.conf \
-$og_repo/opengauss:$VERSION -M primary \
+$OG_REPO/opengauss:$VERSION -M primary \
 -c 'config_file=/etc/opengauss/postgresql.conf' \
 || {
   echo ""
@@ -225,7 +225,7 @@ for ((i=1;i<=$slave_count;i++)); do
 	-e REPL_CONN_INFO="replconninfo1 = 'localhost=$slave_ip localport=$slave_local_port localservice=$slave_host_port remotehost=$master_ip remoteport=$master_local_port remoteservice=$master_host_port'\n" \
 	-v $shared_data_dir:/var/lib/opengauss \
 	-v $CONFIG_PATH/postgresql.conf:/etc/opengauss/postgresql.conf \
-	$og_repo/opengauss:$VERSION -M standby \
+	$OG_REPO/opengauss:$VERSION -M standby \
 	-c 'config_file=/etc/opengauss/postgresql.conf' \
 	|| {
 	  echo ""

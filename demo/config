@@ -1,6 +1,7 @@
 BASEDIR=$(dirname $0)
 DB_SERVER_NAME=serverless-metadata-db 
-og_repo=enmotech
+#OG_REPO=enmotech
+OG_REPO=fibird
 VERSION=1.0.1
 
 #================== config ================== 
